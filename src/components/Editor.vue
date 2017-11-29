@@ -11,12 +11,20 @@
 
       <label for="diagramHeight">Height:</label>
       <input id="diagramHeight" type="number" v-model="archDiagram.height"/>
+
+      <label for="diagramScale">Scale:</label>
+      <input id="diagramScale" type="number" v-model="archDiagram.scale"
+        step="0.05" />
+
+      <button v-on:click="clearDiagram">Clear</button>
     </section>
     <section>
       <arch-diagram
         class="diagram"
         :height="archDiagram.height"
         :width="archDiagram.width"
+        :scale="archDiagram.scale"
+        :products="archDiagram.products"
         >
       </arch-diagram>
     </section>
@@ -38,10 +46,24 @@ export default {
       archDiagram: {
         height: 600,
         width: 800,
+        scale: 1,
+        products: [
+          {
+            product: 'GAE',
+            title: 'Hadoop & Spark',
+            byline: 'Cloud Dataproc',
+            x: 10,
+            y: 10,
+          }, {
+            product: 'GCE',
+            title: 'Frontend Service',
+            x: 600,
+            y: 10,
+          },
+        ],
       },
     };
   },
-
   computed: {
     url: {
       get() {
@@ -57,6 +79,10 @@ export default {
   },
 
   methods: {
+    clearDiagram() {
+      console.log('clearing products');
+      this.archDiagram.products = [];
+    },
   },
 
   components: {

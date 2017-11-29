@@ -8,26 +8,45 @@ import GcpProductCard from '@/components/diagramming/GcpProductCard';
 
 export default {
   name: 'ArchDiagram',
+  props: ['scale', 'products'],
   data() {
     return {
+      cards: [],
     };
   },
-
+  watch: {
+    scale() {
+      this.cards.forEach(card => card.scale(this.scale));
+    },
+    products() {
+      this.draw();
+    },
+  },
   mounted() {
     this.stage = new createjs.Stage('arch-diagram-canvas');
-    const gae = new GcpProductCard({
-      product: GcpProductCard.products.GAE,
-      title: 'Frontend Service',
-      x: 0,
-      y: 0,
-    });
-    gae.draw(this.stage);
+    // update async events when ready (aka images)
+    createjs.Ticker.on('tick', this.stage);
+    this.draw();
+  },
+  methods: {
+    draw() {
+      this.clear();
+      this.products.forEach((product) => {
+        const card = new GcpProductCard(product, this.scale);
+        card.draw(this.stage);
+        this.cards.push(card);
+      });
+    },
+    clear() {
+      this.cards.forEach(card => card.delete(this.stage));
+      this.cards = [];
+    },
   },
 };
 </script>
 
 <style scoped>
 canvas {
-background: black;
+background: #fff;
 }
 </style>
