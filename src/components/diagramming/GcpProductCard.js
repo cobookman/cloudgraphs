@@ -15,10 +15,8 @@ const products = Object.freeze({
 
 // Handles drawing & interaction of the Card itself
 class Card {
-  constructor(x, y, scale) {
-    this.x = x;
-    this.y = y;
-    this.scaleFactor = scale;
+  constructor(scaleFactor) {
+    this.scaleFactor = scaleFactor;
     this.shape = new createjs.Shape();
     this.radius = 2;
     this.scale();
@@ -32,20 +30,12 @@ class Card {
     return 170 * this.scaleFactor;
   }
 
-  xpos() {
-    return this.x * this.scaleFactor;
-  }
-
-  ypos() {
-    return this.y * this.scaleFactor;
-  }
-
-  scale(scale = this.scaleFactor) {
-    this.scaleFactor = scale;
+  scale(scaleFactor = this.scaleFactor) {
+    this.scaleFactor = scaleFactor;
     this.shape.graphics
       .clear()
       .beginFill('#fff')
-      .drawRoundRect(this.xpos(), this.ypos(),
+      .drawRoundRect(0, 0,
           this.width(), this.height(), this.radius);
 
     const shadowOffsetX = 1 * this.scaleFactor;
@@ -64,11 +54,9 @@ class Card {
 
 // Handles drawing & interaction of the product icon
 class Icon {
-  constructor(product, x, y, scale) {
+  constructor(product, scaleFactor) {
     this.product = product;
-    this.scaleFactor = scale;
-    this.x = x;
-    this.y = y;
+    this.scaleFactor = scaleFactor;
 
     this.bitmap = new createjs.Bitmap(product.icon);
     this.scale();
@@ -76,17 +64,15 @@ class Icon {
   }
 
   xpos() {
-    // 20px from left of card
-    return (this.x + 20) * this.scaleFactor;
+    return 20 * this.scaleFactor;
   }
 
   ypos() {
-    // 120px from top of card & svg has ~8px of padding-top
-    return (this.y + (30 - 8)) * this.scaleFactor;
+    return (30 - 8) * this.scaleFactor;
   }
 
-  scale(scale = this.scaleFactor) {
-    this.scaleFactor = scale;
+  scale(scaleFactor = this.scaleFactor) {
+    this.scaleFactor = scaleFactor;
     this.bitmap.setTransform(this.xpos(), this.ypos(), this.scaleFactor, this.scaleFactor);
   }
 
@@ -96,31 +82,27 @@ class Icon {
 }
 
 class TitleDrawing {
-  constructor(title, x, y, scaleFactor, fontName, fontSize, fontColor) {
+  constructor(title, fontName, fontSize, fontColor, scaleFactor) {
     this.title = title;
     this.scaleFactor = scaleFactor;
     this.fontName = fontName;
     this.fontSize = fontSize;
     this.fontColor = fontColor;
-    this.x = x;
-    this.y = y;
     this.text = new createjs.Text(this.title);
     this.text.color = this.fontColor;
     this.scale();
   }
 
   xpos() {
-    // 195px from left of card
-    return (this.x + 195) * this.scaleFactor;
+    return 195 * this.scaleFactor;
   }
 
   ypos() {
-    // 40px from top of card
-    return (this.y + 35) * this.scaleFactor;
+    return 35 * this.scaleFactor;
   }
 
-  scale(scale = this.scaleFactor) {
-    this.scaleFactor = scale;
+  scale(scaleFactor = this.scaleFactor) {
+    this.scaleFactor = scaleFactor;
     const fontSize = this.fontSize * this.scaleFactor;
     this.text.font = `${fontSize}px ${this.fontName}`;
     this.text.x = this.xpos();
@@ -133,10 +115,8 @@ class TitleDrawing {
 }
 
 class BylineDrawing {
-  constructor(byline, x, y, scaleFactor, fontName, fontSize, fontColor) {
+  constructor(byline, fontName, fontSize, fontColor, scaleFactor) {
     this.byline = byline;
-    this.x = x;
-    this.y = y;
     this.scaleFactor = scaleFactor;
     this.fontName = fontName;
     this.fontSize = fontSize;
@@ -147,15 +127,15 @@ class BylineDrawing {
   }
 
   xpos() {
-    return (this.x + 195) * this.scaleFactor;
+    return 195 * this.scaleFactor;
   }
 
   ypos() {
-    return (this.y + 90) * this.scaleFactor;
+    return 90 * this.scaleFactor;
   }
 
-  scale(scale = this.scaleFactor) {
-    this.scaleFactor = scale;
+  scale(scaleFactor = this.scaleFactor) {
+    this.scaleFactor = scaleFactor;
     const fontSize = this.fontSize * this.scaleFactor;
     this.text.font = `${fontSize}px ${this.fontName}`;
     this.text.x = this.xpos();
@@ -185,18 +165,34 @@ export default class GcpProductCard {
   draw(stage) {
     this.delete(stage);
 
-    this.card = new Card(this.x, this.y, this.scaleFactor);
-    this.icon = new Icon(this.product, this.x, this.y, this.scaleFactor);
-    this.titleDrawing = new TitleDrawing(this.title, this.x, this.y,
-      this.scaleFactor, 'Roboto', 37, '#212121');
-    this.bylineDrawing = new BylineDrawing(this.byline, this.x, this.y,
-      this.scaleFactor, 'Roboto', 35, '#757575');
+    this.card = new Card(this.scaleFactor);
+    this.icon = new Icon(this.product, this.scaleFactor);
+    this.titleDrawing = new TitleDrawing(this.title,
+      'Roboto', 37, '#212121', this.scaleFactor);
+    this.bylineDrawing = new BylineDrawing(this.byline,
+      'Roboto', 35, '#757575', this.scaleFactor);
+    this.container = new createjs.Container();
+    this.container.x = this.x;
+    this.container.y = this.y;
+    // this.container.x = this.card.xpos();
+    // this.container.y = this.card.ypos();
 
-    stage.addChild(
+    this.container.addChild(
       this.card.elm(),
       this.icon.elm(),
       this.titleDrawing.elm(),
       this.bylineDrawing.elm());
+
+    stage.addChild(this.container);
+    this.container.on('pressmove', this.moveCard.bind(this, stage));
+
+    stage.update();
+  }
+
+  moveCard(stage, evt) {
+    // todo(bookman): calculate where you are on card & offset so less janky
+    this.container.x = evt.stageX * this.scaleFactor;
+    this.container.y = evt.stageY * this.scaleFactor;
     stage.update();
   }
 
@@ -205,23 +201,13 @@ export default class GcpProductCard {
     this.icon.scale(scaleFactor);
     this.titleDrawing.scale(scaleFactor);
     this.bylineDrawing.scale(scaleFactor);
+    this.container.x = this.x * scaleFactor;
+    this.container.y = this.y * scaleFactor;
   }
 
   delete(stage) {
-    if (this.card) {
-      stage.removeChild(this.card.elm());
-    }
-
-    if (this.icon) {
-      stage.removeChild(this.icon.elm());
-    }
-
-    if (this.titleDrawing) {
-      stage.removeChild(this.titleDrawing.elm());
-    }
-
-    if (this.bylineDrawing) {
-      stage.removeChild(this.bylineDrawing.elm());
+    if (this.container) {
+      stage.removeChild(this.container);
     }
 
     stage.update();

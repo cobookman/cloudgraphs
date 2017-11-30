@@ -24,6 +24,8 @@ export default {
   },
   mounted() {
     this.stage = new createjs.Stage('arch-diagram-canvas');
+    createjs.Touch.enable(this.stage, true, false);
+
     // update async events when ready (aka images)
     createjs.Ticker.on('tick', this.stage);
     this.draw();

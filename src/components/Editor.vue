@@ -3,7 +3,7 @@
     <h1>CloudGraphs</h1>
     <section>
       <h3>Graph Markup</h3>
-      <markup class="markup"></markup>
+      <markup @archChange="onArchChange" class="markup"></markup>
     </section>
     <section>
       <label for="diagramWidth">Width:</label>
@@ -14,7 +14,7 @@
 
       <label for="diagramScale">Scale:</label>
       <input id="diagramScale" type="number" v-model="archDiagram.scale"
-        step="0.05" />
+        step="0.05" min="0.05" />
 
       <button v-on:click="clearDiagram">Clear</button>
     </section>
@@ -29,7 +29,7 @@
       </arch-diagram>
     </section>
     <section>
-      <p> {{ url }}</p>
+      <p>{{ url }}</p>
     </section>
   </div>
 </template>
@@ -47,20 +47,7 @@ export default {
         height: 600,
         width: 800,
         scale: 1,
-        products: [
-          {
-            product: 'GAE',
-            title: 'Hadoop & Spark',
-            byline: 'Cloud Dataproc',
-            x: 10,
-            y: 10,
-          }, {
-            product: 'GCE',
-            title: 'Frontend Service',
-            x: 600,
-            y: 10,
-          },
-        ],
+        products: [],
       },
     };
   },
@@ -80,8 +67,10 @@ export default {
 
   methods: {
     clearDiagram() {
-      console.log('clearing products');
       this.archDiagram.products = [];
+    },
+    onArchChange(ev) {
+      this.archDiagram.products = JSON.parse(ev);
     },
   },
 
