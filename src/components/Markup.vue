@@ -1,38 +1,34 @@
 <template>
   <div class="markup">
     <h3>Markup</h3>
-    <textarea v-model="archMarkup" class="editor"></textarea>
+    <textarea
+      class="editor"
+      v-model="markupMirror">
+    </textarea>
   </div>
 </template>
 
 <script>
 export default {
   name: 'Markup',
+  props: ['markup'],
   data() {
     return {
-      archMarkup: JSON.stringify([
-        {
-          product: 'GAE',
-          title: 'Hadoop & Spark',
-          byline: 'Cloud Dataproc',
-          x: 10,
-          y: 10,
-        }, {
-          product: 'GCE',
-          title: 'Frontend Service',
-          x: 600,
-          y: 10,
-        },
-      ]),
+      markupMirror: '',
     };
   },
   watch: {
-    archMarkup() {
-      this.$emit('archChange', this.archMarkup);
+    markup: {
+      immediate: true,
+      handler() {
+        this.markupMirror = this.markup;
+      },
+    },
+    markupMirror() {
+      this.$emit('markupChange', this.markupMirror);
     },
   },
   created() {
-    this.$emit('archChange', this.archMarkup);
   },
 };
 </script>

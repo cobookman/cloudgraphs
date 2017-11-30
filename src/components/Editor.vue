@@ -3,7 +3,7 @@
     <h1>CloudGraphs</h1>
     <section>
       <h3>Graph Markup</h3>
-      <markup @archChange="onArchChange" class="markup"></markup>
+      <markup @markupChange="onMarkupChange" class="markup" :markup="this.markup"></markup>
     </section>
     <section>
       <label for="diagramWidth">Width:</label>
@@ -25,6 +25,7 @@
         :width="archDiagram.width"
         :scale="archDiagram.scale"
         :products="archDiagram.products"
+        @cardMove="onCardMove"
         >
       </arch-diagram>
     </section>
@@ -46,7 +47,7 @@ export default {
       archDiagram: {
         height: 600,
         width: 800,
-        scale: 1,
+        scale: 0.5,
         products: [],
       },
     };
@@ -57,20 +58,52 @@ export default {
         return `https://localhost:8080/${this.$route.params.id}`;
       },
     },
+    markup: {
+      get() {
+        return JSON.stringify(this.archDiagram.products);
+      },
+      set(value) {
+        this.archDiagram.products = JSON.parse(value);
+      },
+    },
   },
 
-  beforeMount() {
-  },
-
-  beforeDestroy() {
+  created() {
+    this.archDiagram.products = [
+      {
+        productAcronym: 'GAE',
+        title: 'Hadoop & Spark',
+        byline: 'Cloud Dataproc',
+        x: 10,
+        y: 10,
+      }, {
+        productAcronym: 'GCE',
+        title: 'Frontend Service',
+        x: 300,
+        y: 10,
+      },
+    ];
   },
 
   methods: {
     clearDiagram() {
       this.archDiagram.products = [];
     },
-    onArchChange(ev) {
-      this.archDiagram.products = JSON.parse(ev);
+    onMarkupChange(markup) {
+      this.markup = markup;
+      this.archDiagram.products = JSON.parse(this.markup);
+    },
+    getProductCardId(card) {
+      return `${card.productAcronym}${card.title}|${card.byline}`;
+    },
+    onCardMove(movedCard) {
+      const id = this.getProductCardId(movedCard);
+      this.archDiagram.products = this.archDiagram.products.map((card) => {
+        if (id === this.getProductCardId(card)) {
+          return movedCard.toJSON();
+        }
+        return card;
+      });
     },
   },
 
@@ -91,7 +124,6 @@ export default {
 .diagram {
   margin: 0 auto;
 }
-
 section {
   margin-bottom: 10px;
 }

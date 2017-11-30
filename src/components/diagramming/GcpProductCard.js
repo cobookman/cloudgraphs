@@ -1,17 +1,5 @@
 import createjs from 'createjs-cmd';
-
-// List of GCP Products with card info
-const rootIconPath = '/static/icons/gcp';
-const products = Object.freeze({
-  GAE: Object.freeze({
-    icon: `${rootIconPath}/Compute/App Engine.svg`,
-    name: 'App Engine',
-  }),
-  GCE: Object.freeze({
-    icon: `${rootIconPath}/Compute/Compute Engine.svg`,
-    name: 'Compute Engine',
-  }),
-});
+import products from '@/components/diagramming/products';
 
 // Handles drawing & interaction of the Card itself
 class Card {
@@ -153,23 +141,44 @@ export default class GcpProductCard {
     return products;
   }
 
-  constructor(params, scaleFactor) {
-    this.product = GcpProductCard.products[params.product.toUpperCase()];
+  constructor(params, stage, scaleFactor) {
+    this.productAcronym = params.productAcronym;
+    this.product = GcpProductCard.products[this.productAcronym.toUpperCase()];
     this.title = params.title;
-    this.byline = params.byline || this.product.name;
+    this.byline = params.byline;
     this.x = params.x || null;
     this.y = params.y || null;
+    this.stage = stage;
     this.scaleFactor = scaleFactor || 1.0;
   }
 
-  draw(stage) {
-    this.delete(stage);
+  toJSON() {
+    return {
+      productAcronym: this.productAcronym,
+      title: this.title,
+      byline: this.byline,
+      x: this.x,
+      y: this.y,
+    };
+  }
+
+  on(eventName, handler) {
+    if (eventName === 'move') {
+      this.onMoveHandlers = this.onMoveHandlers || [];
+      this.onMoveHandlers.push(handler);
+    }
+  }
+
+  draw() {
+    this.delete();
 
     this.card = new Card(this.scaleFactor);
     this.icon = new Icon(this.product, this.scaleFactor);
     this.titleDrawing = new TitleDrawing(this.title,
       'Roboto', 37, '#212121', this.scaleFactor);
-    this.bylineDrawing = new BylineDrawing(this.byline,
+
+    const bylineText = this.byline || this.product.name;
+    this.bylineDrawing = new BylineDrawing(bylineText,
       'Roboto', 35, '#757575', this.scaleFactor);
     this.container = new createjs.Container();
     this.container.x = this.x;
@@ -183,17 +192,32 @@ export default class GcpProductCard {
       this.titleDrawing.elm(),
       this.bylineDrawing.elm());
 
-    stage.addChild(this.container);
-    this.container.on('pressmove', this.moveCard.bind(this, stage));
-
-    stage.update();
+    this.stage.addChild(this.container);
+    this.container.on('pressmove', this.onPressMove.bind(this));
+    this.container.on('pressup', this.onPressUp.bind(this));
+    this.stage.update();
   }
 
-  moveCard(stage, evt) {
+  onPressMove(evt) {
+    if (!this.moving) {
+      this.moving = true;
+      this.movingOffsetX = this.container.x - evt.stageX;
+      this.movingOffsetY = this.container.y - evt.stageY;
+    }
+
     // todo(bookman): calculate where you are on card & offset so less janky
-    this.container.x = evt.stageX * this.scaleFactor;
-    this.container.y = evt.stageY * this.scaleFactor;
-    stage.update();
+    this.container.x = evt.stageX + this.movingOffsetX;
+    this.container.y = evt.stageY + this.movingOffsetY;
+    this.x = this.container.x;
+    this.y = this.container.y;
+    this.stage.update();
+    (this.onMoveHandlers || []).forEach((handler) => {
+      handler();
+    });
+  }
+
+  onPressUp() {
+    this.moving = false;
   }
 
   scale(scaleFactor) {
@@ -205,11 +229,11 @@ export default class GcpProductCard {
     this.container.y = this.y * scaleFactor;
   }
 
-  delete(stage) {
+  delete() {
     if (this.container) {
-      stage.removeChild(this.container);
+      this.stage.removeChild(this.container);
     }
 
-    stage.update();
+    this.stage.update();
   }
 }
