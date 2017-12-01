@@ -6,14 +6,8 @@
       <markup @markupChange="onMarkupChange" class="markup" :markup="this.markup"></markup>
     </section>
     <section>
-      <label for="diagramWidth">Width:</label>
-      <input id="diagramWidth" type="number" v-model="archDiagram.width"/>
-
-      <label for="diagramHeight">Height:</label>
-      <input id="diagramHeight" type="number" v-model="archDiagram.height"/>
-
       <label for="diagramScale">Scale:</label>
-      <input id="diagramScale" type="number" v-model="archDiagram.scale"
+      <input id="diagramScale" type="number" v-model.number="archDiagram.scale"
         step="0.05" min="0.05" />
 
       <button v-on:click="clearDiagram">Clear</button>
@@ -21,11 +15,9 @@
     <section>
       <arch-diagram
         class="diagram"
-        :height="archDiagram.height"
-        :width="archDiagram.width"
         :scale="archDiagram.scale"
-        :products="archDiagram.products"
-        @cardMove="onCardMove"
+        :diagramData="archDiagram.diagramData"
+        @onElmMove="onElmMove"
         >
       </arch-diagram>
     </section>
@@ -45,10 +37,8 @@ export default {
     return {
       title: 'Create a new cloud graph',
       archDiagram: {
-        height: 600,
-        width: 800,
         scale: 0.5,
-        products: [],
+        diagramData: [],
       },
     };
   },
@@ -60,29 +50,55 @@ export default {
     },
     markup: {
       get() {
-        return JSON.stringify(this.archDiagram.products);
+        return JSON.stringify(this.archDiagram.diagramData);
       },
       set(value) {
-        this.archDiagram.products = JSON.parse(value);
+        this.archDiagram.diagramData = JSON.parse(value);
       },
     },
   },
 
   created() {
-    this.archDiagram.products = [
-      {
-        productAcronym: 'GAE',
-        title: 'Hadoop & Spark',
-        byline: 'Cloud Dataproc',
-        x: 10,
-        y: 10,
-      }, {
-        productAcronym: 'GCE',
-        title: 'Frontend Service',
-        x: 300,
-        y: 10,
-      },
-    ];
+    // use http hook to fetch diagram data.
+    this.archDiagram.diagramData = {
+      elms: [
+        {
+          id: 'a',
+          type: 'GcpProductZone',
+          zoneName: 'ZONE',
+          title: 'us-east1-a',
+          x: 10,
+          y: 10,
+          elms: [
+            {
+              id: 'b',
+              type: 'GcpProductCard',
+              productAcronym: 'GAE',
+              title: 'Hado3op & Spark',
+              byline: 'Cloud Dataproc',
+              x: 10,
+              y: 10,
+            }, {
+              id: 'c',
+              type: 'GcpProductCard',
+              productAcronym: 'GCE',
+              title: 'Frontend Service',
+              x: 300,
+              y: 10,
+            },
+          ],
+        },
+        {
+          id: 'e',
+          type: 'GcpProductCard',
+          productAcronym: 'GAE',
+          title: 'Hado2op & Spark',
+          byline: 'Cloud Dataproc',
+          x: 200,
+          y: 300,
+        },
+      ],
+    };
   },
 
   methods: {
@@ -91,19 +107,18 @@ export default {
     },
     onMarkupChange(markup) {
       this.markup = markup;
-      this.archDiagram.products = JSON.parse(this.markup);
+      this.archDiagram.diagramData = JSON.parse(this.markup);
     },
-    getProductCardId(card) {
-      return `${card.productAcronym}${card.title}|${card.byline}`;
-    },
-    onCardMove(movedCard) {
-      const id = this.getProductCardId(movedCard);
-      this.archDiagram.products = this.archDiagram.products.map((card) => {
-        if (id === this.getProductCardId(card)) {
-          return movedCard.toJSON();
-        }
-        return card;
-      });
+    onElmMove(movedCard) {
+      let pointer = this.archDiagram.diagramData;
+      const ids = Object.assign({}, movedCard.id);
+
+      while (ids.length !== 0) {
+        pointer = pointer.elms[ids.shift()];
+      }
+
+      pointer.x = movedCard.x;
+      pointer.y = movedCard.y;
     },
   },
 

@@ -6,30 +6,38 @@
 
 <script>
 import createjs from 'createjs-cmd';
-import GcpProductCard from '@/components/diagramming/GcpProductCard';
+// import GcpProductCard from '@/components/diagramming/GcpProductCard';
+// import GcpProductZone from '@/components/diagramming/GcpProductZone';
+import CanvasRoot from '@/components/diagramming/CanvasRoot';
 
 export default {
   name: 'ArchDiagram',
-  props: ['scale', 'products', 'width', 'height'],
+  props: {
+    scale: {
+      default: 1.0,
+      type: Number,
+    },
+    diagramData: {
+      default: {},
+      type: Object,
+    },
+    padding: {
+      default: 20,
+      type: Number,
+    },
+  },
   data() {
     return {
-      cards: [],
+      drawings: {},
     };
   },
   watch: {
     scale() {
-      this.cards.forEach(card => card.scale(this.scale));
+      this.scaleStage();
     },
-    products() {
+    diagramData(newValue, oldValue) {
+      // TODO(bookman): update drawing vs re-draw
       this.draw();
-    },
-    width() {
-      this.stage.canvas.width = this.width;
-      this.stage.update();
-    },
-    height() {
-      this.stage.canvas.height = this.height;
-      this.stage.update();
     },
   },
   mounted() {
@@ -46,20 +54,24 @@ export default {
   },
   methods: {
     draw() {
-      this.clear();
-      this.products.forEach((product) => {
-        const card = new GcpProductCard(product, this.stage, this.scale);
-        card.draw();
-        card.on('move', this.onCardMove.bind(this, card));
-        this.cards.push(card);
-      });
+      // clear old drawing
+      this.stage.removeAllChildren();
+      this.stage.update();
+      this.canvasRoot = new CanvasRoot(this.diagramData.elms);
+      const container = this.canvasRoot.render();
+      this.stage.addChild(container);
+      this.scaleStage();
     },
-    clear() {
-      this.cards.forEach(card => card.delete(this.stage));
-      this.cards = [];
+    scaleStage() {
+      this.stage.setTransform(0, 0, this.scale, this.scale);
+      const bounds = this.stage.getBounds();
+      const width = bounds.width + (this.padding * 2);
+      const height = bounds.height + (this.padding * 2);
+      this.stage.canvas.width = width * this.scale;
+      this.stage.canvas.height = height * this.scale;
     },
-    onCardMove(card) {
-      this.$emit('cardMove', card);
+    onElmMove(card) {
+      this.$emit('onElmMove', card);
     },
   },
 };
@@ -69,6 +81,7 @@ export default {
 canvas {
   background: #fff;
   display: inline-block;
+  border: 1px solid #aaa;
 }
 div {
   display: inline-block;
