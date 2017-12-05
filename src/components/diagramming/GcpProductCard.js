@@ -80,34 +80,10 @@ export default class GcpProductCard extends AbstractDrawing {
       this.bylineDrawing,
     );
 
-    // eplicitly set container width & height
+    // explicitly set container width & height
     const bounds = this.container.getBounds();
     this.container.setBounds(bounds.x, bounds.y, 530, 170);
 
-    // container.on('pressmove', this.onPressMove.bind(this));
-    // container.on('pressup', this.onPressUp.bind(this));
     return this.container;
   }
-
-  // onPressMove(evt) {
-  //   if (!this.moving) {
-  //     this.moving = true;
-  //     this.movingOffsetX = this.container.x - evt.stageX;
-  //     this.movingOffsetY = this.container.y - evt.stageY;
-  //   }
-  //
-  //   // todo(bookman): calculate where you are on card & offset so less janky
-  //   this.container.x = evt.stageX + this.movingOffsetX;
-  //   this.container.y = evt.stageY + this.movingOffsetY;
-  //   this.x = this.container.x;
-  //   this.y = this.container.y;
-  //   this.stage.update();
-  //   (this.onMoveHandlers || []).forEach((handler) => {
-  //     handler();
-  //   });
-  // }
-  //
-  // onPressUp() {
-  //   this.moving = false;
-  // }
 }

@@ -27,7 +27,7 @@
         :diagramData="archDiagram.diagramData"
         :width="archDiagram.width"
         :height="archDiagram.height"
-        @onElmMove="onElmMove"
+        @diagramDataChange="onDiagramDataChange"
         >
       </arch-diagram>
     </section>
@@ -47,7 +47,7 @@ export default {
     return {
       title: 'Create a new cloud graph',
       archDiagram: {
-        scale: 0.5,
+        scale: 0.35,
         width: 800,
         height: 600,
         diagramData: [],
@@ -125,6 +125,19 @@ export default {
           y: 900,
         },
       ],
+      arrows: [
+        {
+          from: 'a',
+          to: 'g',
+          arrow: 'ARROW_TO',
+          path: 'PRIMARY',
+          optional: false,
+          midpoint: {
+            x: 100,
+            y: 150,
+          },
+        },
+      ],
     };
   },
 
@@ -136,16 +149,8 @@ export default {
       this.markup = markup;
       this.archDiagram.diagramData = JSON.parse(this.markup);
     },
-    onElmMove(movedCard) {
-      let pointer = this.archDiagram.diagramData;
-      const ids = Object.assign({}, movedCard.id);
-
-      while (ids.length !== 0) {
-        pointer = pointer.elms[ids.shift()];
-      }
-
-      pointer.x = movedCard.x;
-      pointer.y = movedCard.y;
+    onDiagramDataChange(newDiagramData) {
+      this.archDiagram.diagramData = newDiagramData;
     },
   },
 

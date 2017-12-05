@@ -39,8 +39,7 @@ export default {
     scale() {
       this.draw();
     },
-    diagramData(newValue, oldValue) {
-      // TODO(bookman): update drawing vs re-draw
+    diagramData() {
       this.draw();
     },
     width() {
@@ -51,44 +50,40 @@ export default {
     },
   },
   mounted() {
-    // change framerate to 60fps
-    createjs.Ticker.framerate = 60;
     this.stage = new createjs.Stage('arch-diagram-canvas');
     this.stage.canvas.height = this.height;
     this.stage.canvas.width = this.width;
-    createjs.Touch.enable(this.stage, true, false);
 
-    // update async events when ready (aka images)
+    createjs.Touch.enable(this.stage, true, false);
+    createjs.Ticker.framerate = 60;
     createjs.Ticker.on('tick', this.stage);
+
     this.draw();
   },
   methods: {
     draw() {
-      console.log('drawing');
       // clear old drawing
       this.stage.removeAllChildren();
-
-      this.canvasRoot = new CanvasRoot(this.diagramData.elms);
+      this.canvasRoot = new CanvasRoot(this.diagramData);
       this.canvasRoot.on('pressmove', this.onPressMove.bind(this));
       this.canvasRoot.on('pressup', this.onPressUp.bind(this));
 
       this.stage.addChild(this.canvasRoot.render());
       this.scaleStage();
+
+      // force update to avoid flicker
+      this.stage.update();
     },
     scaleStage() {
       this.stage.x = 0;
       this.stage.y = 0;
       this.stage.scaleX = this.scale;
       this.stage.scaleY = this.scale;
-      // (0, 0, this.scale, this.scale);
-      // const width = bounds.width + (this.padding * 2);
-      // const height = bounds.height + (this.padding * 2);
       this.stage.canvas.width = this.width;
       this.stage.canvas.height = this.height;
     },
     onPressMove(evt, drawing) {
       if (!this.moving) {
-        // first press, get coordinates
         this.moving = true;
         this.deltaX = drawing.x - (evt.stageX / this.scale);
         this.deltaY = drawing.y - (evt.stageY / this.scale);
@@ -100,7 +95,7 @@ export default {
     },
     onPressUp() {
       this.moving = false;
-      this.diagramData.elms = this.canvasRoot.toJSON();
+      this.$emit('diagramDataChange', this.canvasRoot.toJSON());
     },
   },
 };

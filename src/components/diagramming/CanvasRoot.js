@@ -1,13 +1,15 @@
 import createjs from 'createjs-cmd';
 import AbstractDrawing from '@/components/diagramming/AbstractDrawing';
+import GcpArrow from '@/components/diagramming/GcpArrow';
 import GcpProductCard from '@/components/diagramming/GcpProductCard';
 import GcpProductGrouping from '@/components/diagramming/GcpProductGrouping';
 
 export default class CanvasRoot extends AbstractDrawing {
-  constructor(elms) {
+  constructor(diagramData) {
     super();
-    this.elms = elms;
+    this.diagramData = diagramData;
     this.container = new createjs.Container();
+    this.drawings = { elms: [], arrows: [] };
   }
 
   static drawingFactory(elm) {
@@ -22,10 +24,13 @@ export default class CanvasRoot extends AbstractDrawing {
   }
 
   toJSON() {
-    return this.drawings.map(drawing => drawing.toJSON());
+    return {
+      elms: (this.drawings.elms || []).map(drawing => drawing.toJSON()),
+      arrows: (this.drawings.arrows || []).map(drawing => drawing.toJSON()),
+    };
   }
 
-  recurseTree(elm) {
+  recurseElmTree(elm) {
     const drawing = CanvasRoot.drawingFactory(elm);
     drawing.on('pressmove', (evt) => {
       this.emit('pressmove', evt, drawing);
@@ -37,7 +42,7 @@ export default class CanvasRoot extends AbstractDrawing {
     // handle child elms
     if (elm.elms) {
       elm.elms.forEach((childElm) => {
-        const childDrawing = this.recurseTree(childElm, drawing);
+        const childDrawing = this.recurseElmTree(childElm, drawing);
         drawing.addChild(childDrawing);
       });
     }
@@ -47,37 +52,27 @@ export default class CanvasRoot extends AbstractDrawing {
 
   // renders the drawings & attaches necessary event hooks
   render() {
-    // clear canvas
-    this.container.removeAllChildren();
+    this.clear();
     this.container.x = 0;
     this.container.y = 0;
 
-    this.drawings = [];
-    this.elms.forEach((elm) => {
-      const elmDrawing = this.recurseTree(elm);
-      this.container.addChild(elmDrawing.render());
-      this.drawings.push(elmDrawing);
-    });
-    // render the tree to container
-    //
-    // const drawings = this.elms.map((elm) => {
-    //   // get the class of the element being rendered
-    //   const drawing = CanvasRoot.drawingFactory(elm);
-    //
-    //   // attach onDrawingMove callback w/past raw drawing data
-    //   // drawing.on('move', this.onDrawingMove.bind(this, elm));
-    //
-    //   return drawing;
-    // });
-    //
-    // // create a container to wrap drwaings
-    // const container = new createjs.Container();
-    // container.x = 0;
-    // container.y = 0;
-
-    // drawings.forEach((drawing) => {
-    //   container.addChild(drawing.render());
-    // });
+    const elmDrawingsById = {};
+    this.drawings = {
+      elms: (this.diagramData.elms || []).map((elm) => {
+        const drawing = this.recurseElmTree(elm);
+        this.container.addChild(drawing.render());
+        elmDrawingsById[elm.id] = drawing;
+        return drawing;
+      }),
+      arrows: (this.diagramData.arrows || []).map((arrow) => {
+        const drawing = new GcpArrow(Object.assign({
+          fromDrawing: elmDrawingsById[arrow.from],
+          toDrawing: elmDrawingsById[arrow.to],
+        }, arrow));
+        this.container.addChild(drawing.render());
+        return drawing;
+      }),
+    };
 
     return this.container;
   }

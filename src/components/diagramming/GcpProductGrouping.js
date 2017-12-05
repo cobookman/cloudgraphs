@@ -59,8 +59,6 @@ export default class GcpProductGrouping extends AbstractDrawing {
     this.groupingContainer.removeAllChildren();
 
     // render children
-    // let minChildY = 0;
-    // let minChildX = 0;
     this.childrenDrawings.forEach((drawing) => {
       this.childContainer.addChild(drawing);
     });
@@ -77,6 +75,7 @@ export default class GcpProductGrouping extends AbstractDrawing {
     this.bylineDrawing.font = `${this.bylineFontSize}px Roboto`;
     this.bylineDrawing.x = this.padding.x;
     this.bylineDrawing.y = this.padding.y + 37 + 15;
+
 
     const titleBounds = this.titleDrawing.getBounds();
     const bylineBounds = this.bylineDrawing.getBounds();
