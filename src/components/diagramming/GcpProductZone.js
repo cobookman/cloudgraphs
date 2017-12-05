@@ -1,15 +1,16 @@
 import createjs from 'createjs-cmd';
 import zones from '@/components/diagramming/zones';
+import AbstractDrawing from '@/components/diagramming/AbstractDrawing';
 
-export default class GcpProductZone {
+export default class GcpProductZone extends AbstractDrawing {
   constructor(params) {
+    super();
+
     // parse params
     this.id = params.id;
     this.zoneName = params.zoneName;
     this.title = params.title;
     this.byline = params.byline || null;
-    this.x = params.x || 0;
-    this.y = params.y || 0;
     this.padding = params.padding || { x: 35, y: 15 };
     this.titleFontSize = params.titleFontSize || 37;
     this.bylineFontSize = params.bylineFontSize || 33;
@@ -23,10 +24,19 @@ export default class GcpProductZone {
     this.titleDrawing = new createjs.Text();
     this.bylineDrawing = new createjs.Text();
     this.zoneDrawing = new createjs.Shape();
-    this.container = new createjs.Container();
+
+    // holds only the child elements
     this.childContainer = new createjs.Container();
-    // this.container.setBounds(0, 0, 0, 0);
-    // this.childContainer.setBounds(0, 0, 0, 0);
+
+    // holds the zone drawing itself
+    this.zoneContainer = new createjs.Container();
+
+    // holds all elements
+    this.container.x = params.x || 0;
+    this.container.y = params.y || 0;
+
+    this.zoneContainer.on('pressmove', this.emit.bind(this, 'pressmove'));
+    this.zoneContainer.on('pressup', this.emit.bind(this, 'pressup'));
   }
 
   toJSON() {
@@ -43,15 +53,19 @@ export default class GcpProductZone {
   }
 
   render() {
-    // render children
+    // clean up old rendering
+    this.container.removeAllChildren();
     this.childContainer.removeAllChildren();
+    this.zoneContainer.removeAllChildren();
+
+    // render children
+    // let minChildY = 0;
+    // let minChildX = 0;
     this.childrenDrawings.forEach((drawing) => {
       this.childContainer.addChild(drawing);
     });
 
     // render zone
-    this.container.removeAllChildren();
-
     this.titleDrawing.text = this.title || 'hi world';
     this.titleDrawing.color = '#888';
     this.titleDrawing.font = `${this.titleFontSize}px Roboto`;
@@ -77,9 +91,10 @@ export default class GcpProductZone {
       this.childContainer.y += bylineBounds.height;
     }
 
-    // calculate zone background width & height
+    // calculate zone background width
     const childBounds = this.childContainer.getBounds();
-    let zoneWidth = childBounds.width + (this.padding.x * 2);
+    console.log(childBounds);
+    let zoneWidth = childBounds.width + childBounds.x + (this.padding.x * 2);
     if (bylineBounds && bylineBounds.width > zoneWidth) {
       zoneWidth = bylineBounds.width;
     }
@@ -87,7 +102,8 @@ export default class GcpProductZone {
       zoneWidth = titleBounds.width;
     }
 
-    let zoneHeight = (this.padding.y * 5) + childBounds.height;
+    // calculate zone background height
+    let zoneHeight = childBounds.height + childBounds.y + (this.padding.y * 5);
     if (titleBounds) {
       zoneHeight += titleBounds.height;
     }
@@ -112,11 +128,14 @@ export default class GcpProductZone {
       this.childContainer.y = minChildY;
     }
 
-    // add drawings to container in order of z-index
-    this.container.addChild(
+    this.zoneContainer.addChild(
       this.zoneDrawing,
       this.titleDrawing,
-      this.bylineDrawing,
+      this.bylineDrawing);
+
+    // add drawings to container in order of z-index
+    this.container.addChild(
+      this.zoneContainer,
       this.childContainer);
 
     // container bounds same as zone's
@@ -125,10 +144,6 @@ export default class GcpProductZone {
     this.container.setBounds(this.x, this.y, zoneWidth, zoneHeight);
 
     return this.container;
-
-    // // container.on('pressmove', this.onPressMove.bind(this));
-    // // container.on('pressup', this.onPressUp.bind(this));
-    // return container;
   }
 
   addChild(child) {

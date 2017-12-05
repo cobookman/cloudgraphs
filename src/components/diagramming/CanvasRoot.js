@@ -21,27 +21,18 @@ export default class CanvasRoot extends AbstractDrawing {
     }
   }
 
-  renderElms() {
-    const recurseTree = function recurseTree(elm) {
-      // render current element in tree
-      const drawing = CanvasRoot.drawingFactory(elm);
-
-      // render its children
-      if (elm.elms) {
-        elm.elms.forEach((childElm) => {
-          const childDrawing = recurseTree(childElm);
-          drawing.addChild(childDrawing);
-        });
-      }
-
-      return drawing;
-    };
-
-    this.renderings = this.elms.map(elm => recurseTree(elm, this.renderings));
+  toJSON() {
+    return this.drawings.map(drawing => drawing.toJSON());
   }
 
   recurseTree(elm) {
     const drawing = CanvasRoot.drawingFactory(elm);
+    drawing.on('pressmove', (evt) => {
+      this.emit('pressmove', evt, drawing);
+    });
+    drawing.on('pressup', (evt) => {
+      this.emit('pressup', evt, drawing);
+    });
 
     // handle child elms
     if (elm.elms) {
@@ -92,9 +83,9 @@ export default class CanvasRoot extends AbstractDrawing {
   }
 
   // clears the canvas of all drawings
-  clear(stage) {
+  clear() {
     if (this.container) {
-      stage.removeChild(this.container);
+      this.container.removeAllChildren();
     }
   }
 

@@ -1,7 +1,28 @@
+import createjs from 'createjs-cmd';
+
 export default class AbstractDrawing {
   constructor() {
     this.eventHandlers = [];
+    this.container = new createjs.Container();
+    this.container.setBounds(0, 0, 0, 0);
   }
+
+  get x() {
+    return this.container.x;
+  }
+
+  set x(newX) {
+    this.container.x = (newX < 0) ? 0 : newX;
+  }
+
+  get y() {
+    return this.container.y;
+  }
+
+  set y(newY) {
+    this.container.y = (newY < 0) ? 0 : newY;
+  }
+
 
   // add event handler
   on(eventName, handler) {
@@ -18,9 +39,9 @@ export default class AbstractDrawing {
   }
 
   // emit events to handlers
-  emit(eventName, payload) {
+  emit(eventName, ...args) {
     (this.eventHandlers[eventName] || []).forEach((handler) => {
-      handler(payload);
+      handler.apply(handler, args);
     });
   }
 }

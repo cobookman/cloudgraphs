@@ -21,8 +21,12 @@ export default {
       default: {},
       type: Object,
     },
-    padding: {
-      default: 20,
+    width: {
+      default: 800,
+      type: Number,
+    },
+    height: {
+      default: 600,
       type: Number,
     },
   },
@@ -33,12 +37,18 @@ export default {
   },
   watch: {
     scale() {
-      this.scaleStage();
+      this.draw();
     },
     diagramData(newValue, oldValue) {
       // TODO(bookman): update drawing vs re-draw
       this.draw();
     },
+    width() {
+      this.draw();
+    },
+    height() {
+      this.draw();
+    }
   },
   mounted() {
     // change framerate to 30fps
@@ -54,24 +64,68 @@ export default {
   },
   methods: {
     draw() {
+      console.log('drawing');
       // clear old drawing
       this.stage.removeAllChildren();
       this.stage.update();
       this.canvasRoot = new CanvasRoot(this.diagramData.elms);
-      const container = this.canvasRoot.render();
-      this.stage.addChild(container);
+      this.canvasRoot.on('pressmove', this.onPressMove.bind(this));
+      this.canvasRoot.on('pressup', this.onPressUp.bind(this));
+
+      this.canvasRoot.on('pressup', (evt, drawing) => {
+        console.log('pressup', evt, drawing);
+      });
+
+      this.stage.addChild(this.canvasRoot.render());
       this.scaleStage();
     },
     scaleStage() {
-      this.stage.setTransform(0, 0, this.scale, this.scale);
-      const bounds = this.stage.getBounds();
-      const width = bounds.width + (this.padding * 2);
-      const height = bounds.height + (this.padding * 2);
-      this.stage.canvas.width = width * this.scale;
-      this.stage.canvas.height = height * this.scale;
+      this.stage.x = 0;
+      this.stage.y = 0;
+      this.stage.scaleX = this.scale;
+      this.stage.scaleY = this.scale;
+      // (0, 0, this.scale, this.scale);
+      // const width = bounds.width + (this.padding * 2);
+      // const height = bounds.height + (this.padding * 2);
+      this.stage.canvas.width = this.width;
+      this.stage.canvas.height = this.height;
     },
-    onElmMove(card) {
-      this.$emit('onElmMove', card);
+    onPressMove(evt, drawing) {
+      if (!drawing.moving) {
+        // first press, get coordinates
+        drawing.moving = true;
+        drawing.deltaX = drawing.x - (evt.stageX / this.scale);
+        drawing.deltaY = drawing.y - (evt.stageY / this.scale);
+      } else {
+        // console.log('drawing', drawing);
+        drawing.x = drawing.deltaX + (evt.stageX / this.scale);
+        drawing.y = drawing.deltaY + (evt.stageY / this.scale);
+        // this.diagramData.elms = this.canvasRoot.toJSON();
+        // console.log(this.canvasRoot.toJSON());
+      }
+    },
+    onPressUp(evt, drawing) {
+      this.diagramData.elms = this.canvasRoot.toJSON();
+      this.draw();
+      // // (drawing, evt) => {
+      //
+      //   // console.log(drawing, evt);
+      //   // onPressMove(drawing, evt) {
+      //   //   console.log(evt);
+      //   //   if (!drawing.isMoving) {
+      //   //     drawing.originalX = drawing.x;
+      //   //     drawing.originalY = drawing.y;
+      //   //     drawing.deltaX = drawing.x - evt.stageX;
+      //   //     drawing.deltaY = drawing.y - evt.stageY;
+      //   //     drawing.isMoving = true;
+      //   //   } else {
+      //   //     drawing.x = drawing.deltaX + evt.stageX;
+      //   //     drawing.y = drawing.deltaY + evt.stageY;
+      //   //     drawing.render();
+      //   //   }
+      //   // }
+      // });
+
     },
   },
 };

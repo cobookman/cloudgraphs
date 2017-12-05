@@ -15,16 +15,16 @@ export default class GcpProductCard extends AbstractDrawing {
     this.product = GcpProductCard.products[this.productAcronym.toUpperCase()];
     this.title = params.title;
     this.byline = params.byline || this.product.name;
-    this.x = params.x || 0;
-    this.y = params.y || 0;
 
     this.cardDrawing = new createjs.Shape();
     this.iconDrawing = new createjs.Bitmap();
     this.titleDrawing = new createjs.Text();
     this.bylineDrawing = new createjs.Text();
 
-    this.container = new createjs.Container();
-    this.container.setBounds(0, 0, 0, 0);
+    this.container.x = params.x || 0;
+    this.container.y = params.y || 0;
+    this.container.on('pressmove', this.emit.bind(this, 'pressmove'));
+    this.container.on('pressup', this.emit.bind(this, 'pressup'));
   }
 
   toJSON() {

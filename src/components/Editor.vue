@@ -6,6 +6,14 @@
       <markup @markupChange="onMarkupChange" class="markup" :markup="this.markup"></markup>
     </section>
     <section>
+      <label for="diagramWidth">Width:</label>
+      <input id="diagramWidth" type="number" v-model.number="archDiagram.width"
+        step="1" min="800" />
+
+      <label for="diagramHeight">Height:</label>
+      <input id="diagramHeight" type="number" v-model.number="archDiagram.height"
+        step="1" min="600" />
+
       <label for="diagramScale">Scale:</label>
       <input id="diagramScale" type="number" v-model.number="archDiagram.scale"
         step="0.05" min="0.05" />
@@ -17,6 +25,8 @@
         class="diagram"
         :scale="archDiagram.scale"
         :diagramData="archDiagram.diagramData"
+        :width="archDiagram.width"
+        :height="archDiagram.height"
         @onElmMove="onElmMove"
         >
       </arch-diagram>
@@ -38,6 +48,8 @@ export default {
       title: 'Create a new cloud graph',
       archDiagram: {
         scale: 0.5,
+        width: 800,
+        height: 600,
         diagramData: [],
       },
     };
