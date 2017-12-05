@@ -93,7 +93,6 @@ export default class GcpProductZone extends AbstractDrawing {
 
     // calculate zone background width
     const childBounds = this.childContainer.getBounds();
-    console.log(childBounds);
     let zoneWidth = childBounds.width + childBounds.x + (this.padding.x * 2);
     if (bylineBounds && bylineBounds.width > zoneWidth) {
       zoneWidth = bylineBounds.width;
@@ -101,6 +100,7 @@ export default class GcpProductZone extends AbstractDrawing {
     if (titleBounds && titleBounds.width > zoneWidth) {
       zoneWidth = titleBounds.width;
     }
+    console.log(this.title, childBounds.height, childBounds.x, zoneWidth);
 
     // calculate zone background height
     let zoneHeight = childBounds.height + childBounds.y + (this.padding.y * 5);
@@ -110,6 +110,7 @@ export default class GcpProductZone extends AbstractDrawing {
     if (bylineBounds) {
       zoneHeight += bylineBounds.height;
     }
+    console.log(this.title, childBounds.height, childBounds.y, zoneHeight);
 
     this.zoneDrawing.graphics
       .clear()
@@ -139,9 +140,7 @@ export default class GcpProductZone extends AbstractDrawing {
       this.childContainer);
 
     // container bounds same as zone's
-    this.container.x = this.x;
-    this.container.y = this.y;
-    this.container.setBounds(this.x, this.y, zoneWidth, zoneHeight);
+    this.container.setBounds(0, 0, zoneWidth, zoneHeight);
 
     return this.container;
   }

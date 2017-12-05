@@ -77,8 +77,8 @@ export default {
         {
           id: 'a',
           type: 'GcpProductZone',
-          zoneName: 'ZONE',
-          title: 'us-east1-a',
+          zoneName: 'REGION',
+          title: 'us-east1',
           x: 10,
           y: 10,
           elms: [
@@ -97,11 +97,26 @@ export default {
               title: 'Frontend Service',
               x: 300,
               y: 10,
-            },
+            }, {
+              id: 'e',
+              type: 'GcpProductZone',
+              zoneName: 'ZONE',
+              title: 'us-east1-a',
+              x: 800,
+              y: 300,
+              elms: [{
+                id: 'f',
+                type: 'GcpProductCard',
+                productAcronym: 'DATAFLOW',
+                title: 'ETL',
+                x: 0,
+                y: 0,
+              }]
+            }
           ],
         },
         {
-          id: 'e',
+          id: 'g',
           type: 'GcpProductCard',
           productAcronym: 'GAE',
           title: 'Hado2op & Spark',
