@@ -76,10 +76,10 @@ export default {
       elms: [
         {
           id: 'a',
-          type: 'GcpProductZone',
-          zoneName: 'REGION',
+          type: 'GcpProductGrouping',
+          grouping: 'REGION',
           title: 'us-east1',
-          x: 10,
+          x: 30,
           y: 10,
           elms: [
             {
@@ -99,8 +99,8 @@ export default {
               y: 10,
             }, {
               id: 'e',
-              type: 'GcpProductZone',
-              zoneName: 'ZONE',
+              type: 'GcpProductGrouping',
+              grouping: 'ZONE',
               title: 'us-east1-a',
               x: 800,
               y: 300,
@@ -111,8 +111,8 @@ export default {
                 title: 'ETL',
                 x: 0,
                 y: 0,
-              }]
-            }
+              }],
+            },
           ],
         },
         {
@@ -122,7 +122,7 @@ export default {
           title: 'Hado2op & Spark',
           byline: 'Cloud Dataproc',
           x: 200,
-          y: 300,
+          y: 900,
         },
       ],
     };

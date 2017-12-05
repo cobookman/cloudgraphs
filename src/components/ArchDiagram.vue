@@ -7,7 +7,7 @@
 <script>
 import createjs from 'createjs-cmd';
 // import GcpProductCard from '@/components/diagramming/GcpProductCard';
-// import GcpProductZone from '@/components/diagramming/GcpProductZone';
+// import GcpProductGrouping from '@/components/diagramming/GcpProductGrouping';
 import CanvasRoot from '@/components/diagramming/CanvasRoot';
 
 export default {
@@ -48,11 +48,11 @@ export default {
     },
     height() {
       this.draw();
-    }
+    },
   },
   mounted() {
-    // change framerate to 30fps
-    createjs.Ticker.framerate = 30;
+    // change framerate to 60fps
+    createjs.Ticker.framerate = 60;
     this.stage = new createjs.Stage('arch-diagram-canvas');
     this.stage.canvas.height = this.height;
     this.stage.canvas.width = this.width;
@@ -67,14 +67,10 @@ export default {
       console.log('drawing');
       // clear old drawing
       this.stage.removeAllChildren();
-      this.stage.update();
+
       this.canvasRoot = new CanvasRoot(this.diagramData.elms);
       this.canvasRoot.on('pressmove', this.onPressMove.bind(this));
       this.canvasRoot.on('pressup', this.onPressUp.bind(this));
-
-      this.canvasRoot.on('pressup', (evt, drawing) => {
-        console.log('pressup', evt, drawing);
-      });
 
       this.stage.addChild(this.canvasRoot.render());
       this.scaleStage();
@@ -91,41 +87,20 @@ export default {
       this.stage.canvas.height = this.height;
     },
     onPressMove(evt, drawing) {
-      if (!drawing.moving) {
+      if (!this.moving) {
         // first press, get coordinates
-        drawing.moving = true;
-        drawing.deltaX = drawing.x - (evt.stageX / this.scale);
-        drawing.deltaY = drawing.y - (evt.stageY / this.scale);
+        this.moving = true;
+        this.deltaX = drawing.x - (evt.stageX / this.scale);
+        this.deltaY = drawing.y - (evt.stageY / this.scale);
       } else {
-        // console.log('drawing', drawing);
-        drawing.x = drawing.deltaX + (evt.stageX / this.scale);
-        drawing.y = drawing.deltaY + (evt.stageY / this.scale);
-        // this.diagramData.elms = this.canvasRoot.toJSON();
-        // console.log(this.canvasRoot.toJSON());
+        const x = this.deltaX + (evt.stageX / this.scale);
+        const y = this.deltaY + (evt.stageY / this.scale);
+        drawing.setXY(x, y);
       }
     },
-    onPressUp(evt, drawing) {
+    onPressUp() {
+      this.moving = false;
       this.diagramData.elms = this.canvasRoot.toJSON();
-      this.draw();
-      // // (drawing, evt) => {
-      //
-      //   // console.log(drawing, evt);
-      //   // onPressMove(drawing, evt) {
-      //   //   console.log(evt);
-      //   //   if (!drawing.isMoving) {
-      //   //     drawing.originalX = drawing.x;
-      //   //     drawing.originalY = drawing.y;
-      //   //     drawing.deltaX = drawing.x - evt.stageX;
-      //   //     drawing.deltaY = drawing.y - evt.stageY;
-      //   //     drawing.isMoving = true;
-      //   //   } else {
-      //   //     drawing.x = drawing.deltaX + evt.stageX;
-      //   //     drawing.y = drawing.deltaY + evt.stageY;
-      //   //     drawing.render();
-      //   //   }
-      //   // }
-      // });
-
     },
   },
 };

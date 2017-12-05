@@ -1,14 +1,14 @@
 import createjs from 'createjs-cmd';
-import zones from '@/components/diagramming/zones';
+import groupings from '@/components/diagramming/groupings';
 import AbstractDrawing from '@/components/diagramming/AbstractDrawing';
 
-export default class GcpProductZone extends AbstractDrawing {
+export default class GcpProductGrouping extends AbstractDrawing {
   constructor(params) {
     super();
 
     // parse params
     this.id = params.id;
-    this.zoneName = params.zoneName;
+    this.grouping = params.grouping;
     this.title = params.title;
     this.byline = params.byline || null;
     this.padding = params.padding || { x: 35, y: 15 };
@@ -18,32 +18,32 @@ export default class GcpProductZone extends AbstractDrawing {
     // instantiate default member values
     this.children = [];
     this.childrenDrawings = [];
-    this.zoneType = zones[this.zoneName.toUpperCase()];
+    this.groupingInfo = groupings[this.grouping.toUpperCase()];
 
     // instantiate drawing elms
     this.titleDrawing = new createjs.Text();
     this.bylineDrawing = new createjs.Text();
-    this.zoneDrawing = new createjs.Shape();
+    this.groupingDrawing = new createjs.Shape();
 
     // holds only the child elements
     this.childContainer = new createjs.Container();
 
-    // holds the zone drawing itself
-    this.zoneContainer = new createjs.Container();
+    // holds the grouping drawing itself
+    this.groupingContainer = new createjs.Container();
 
     // holds all elements
     this.container.x = params.x || 0;
     this.container.y = params.y || 0;
 
-    this.zoneContainer.on('pressmove', this.emit.bind(this, 'pressmove'));
-    this.zoneContainer.on('pressup', this.emit.bind(this, 'pressup'));
+    this.groupingContainer.on('pressmove', this.emit.bind(this, 'pressmove'));
+    this.groupingContainer.on('pressup', this.emit.bind(this, 'pressup'));
   }
 
   toJSON() {
     return {
       id: this.id,
-      type: 'GcpProductZone',
-      zoneName: this.zoneName,
+      type: 'GcpProductGrouping',
+      grouping: this.grouping,
       title: this.title,
       x: this.x,
       y: this.y,
@@ -56,7 +56,7 @@ export default class GcpProductZone extends AbstractDrawing {
     // clean up old rendering
     this.container.removeAllChildren();
     this.childContainer.removeAllChildren();
-    this.zoneContainer.removeAllChildren();
+    this.groupingContainer.removeAllChildren();
 
     // render children
     // let minChildY = 0;
@@ -65,7 +65,7 @@ export default class GcpProductZone extends AbstractDrawing {
       this.childContainer.addChild(drawing);
     });
 
-    // render zone
+    // render grouping card
     this.titleDrawing.text = this.title || 'hi world';
     this.titleDrawing.color = '#888';
     this.titleDrawing.font = `${this.titleFontSize}px Roboto`;
@@ -91,33 +91,31 @@ export default class GcpProductZone extends AbstractDrawing {
       this.childContainer.y += bylineBounds.height;
     }
 
-    // calculate zone background width
+    // calculate grouping background width
     const childBounds = this.childContainer.getBounds();
-    let zoneWidth = childBounds.width + childBounds.x + (this.padding.x * 2);
-    if (bylineBounds && bylineBounds.width > zoneWidth) {
-      zoneWidth = bylineBounds.width;
+    let groupingWidth = childBounds.width + childBounds.x + (this.padding.x * 2);
+    if (bylineBounds && bylineBounds.width > groupingWidth) {
+      groupingWidth = bylineBounds.width;
     }
-    if (titleBounds && titleBounds.width > zoneWidth) {
-      zoneWidth = titleBounds.width;
+    if (titleBounds && titleBounds.width > groupingWidth) {
+      groupingWidth = titleBounds.width;
     }
-    console.log(this.title, childBounds.height, childBounds.x, zoneWidth);
 
-    // calculate zone background height
-    let zoneHeight = childBounds.height + childBounds.y + (this.padding.y * 5);
+    // calculate grouping card background height
+    let groupingHeight = childBounds.height + childBounds.y + (this.padding.y * 5);
     if (titleBounds) {
-      zoneHeight += titleBounds.height;
+      groupingHeight += titleBounds.height;
     }
     if (bylineBounds) {
-      zoneHeight += bylineBounds.height;
+      groupingHeight += bylineBounds.height;
     }
-    console.log(this.title, childBounds.height, childBounds.y, zoneHeight);
 
-    this.zoneDrawing.graphics
+    this.groupingDrawing.graphics
       .clear()
-      .beginFill(this.zoneType.background)
+      .beginFill(this.groupingInfo.background)
       .drawRect(0, 0,
-          zoneWidth, zoneHeight);
-    this.zoneDrawing.setBounds(0, 0, zoneWidth, zoneHeight);
+          groupingWidth, groupingHeight);
+    this.groupingDrawing.setBounds(0, 0, groupingWidth, groupingHeight);
 
     // move childDrawings down by the titleBoounds & bylineBounds
     if (this.childContainer.x < this.padding.x) {
@@ -129,18 +127,18 @@ export default class GcpProductZone extends AbstractDrawing {
       this.childContainer.y = minChildY;
     }
 
-    this.zoneContainer.addChild(
-      this.zoneDrawing,
+    this.groupingContainer.addChild(
+      this.groupingDrawing,
       this.titleDrawing,
       this.bylineDrawing);
 
     // add drawings to container in order of z-index
     this.container.addChild(
-      this.zoneContainer,
+      this.groupingContainer,
       this.childContainer);
 
-    // container bounds same as zone's
-    this.container.setBounds(0, 0, zoneWidth, zoneHeight);
+    // container bounds same as grouping card's
+    this.container.setBounds(0, 0, groupingWidth, groupingHeight);
 
     return this.container;
   }
@@ -149,45 +147,4 @@ export default class GcpProductZone extends AbstractDrawing {
     this.children.push(child);
     this.childrenDrawings.push(child.render());
   }
-
-  // onPressMove(evt) {
-  //   console.log('parentMoving');
-  //   if (!this.moving) {
-  //     this.moving = true;
-  //     this.offsets = [];
-  //     this.movingOffset = {
-  //       x: this.container.x - evt.stageX,
-  //       y: this.container.y - evt.stageY,
-  //     };
-  //     this.movingChildOffsets = this.childDrawings.map((drawing) => {
-  //       return {
-  //         x: drawing.x - evt.stageX,
-  //         y: drawing.y - evt.stageY,
-  //       };
-  //     });
-  //   }
-  //
-  //   // todo(bookman): calculate where you are on card & offset so less janky
-  //   this.container.x = evt.stageX + this.movingOffset.x;
-  //   this.container.y = evt.stageY + this.movingOffset.y;
-  //   this.x = this.container.x;
-  //   this.y = this.container.y;
-  //
-  //   // change position of all child cards
-  //   this.childDrawings.forEach((drawing, i) => {
-  //     console.log(this.movingChildOffsets[i]);
-  //     drawing.container.x = evt.stageX + this.movingChildOffsets[i].x;
-  //     drawing.container.y = evt.stageY + this.movingChildOffsets[i].y;
-  //   });
-  //   this.stage.update();
-  //   (this.onMoveHandlers || []).forEach((handler) => {
-  //     handler();
-  //   });
-  // }
-  //
-  // onPressUp() {
-  //   this.moving = false;
-  //   this.movingOffset = {};
-  //   this.movingChildOffsets = [];
-  // }
 }

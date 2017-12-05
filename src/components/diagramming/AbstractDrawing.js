@@ -23,6 +23,10 @@ export default class AbstractDrawing {
     this.container.y = (newY < 0) ? 0 : newY;
   }
 
+  setXY(x, y) {
+    this.x = x;
+    this.y = y;
+  }
 
   // add event handler
   on(eventName, handler) {

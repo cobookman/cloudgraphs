@@ -1,7 +1,7 @@
 import createjs from 'createjs-cmd';
 import AbstractDrawing from '@/components/diagramming/AbstractDrawing';
 import GcpProductCard from '@/components/diagramming/GcpProductCard';
-import GcpProductZone from '@/components/diagramming/GcpProductZone';
+import GcpProductGrouping from '@/components/diagramming/GcpProductGrouping';
 
 export default class CanvasRoot extends AbstractDrawing {
   constructor(elms) {
@@ -14,8 +14,8 @@ export default class CanvasRoot extends AbstractDrawing {
     switch (elm.type) {
       case 'GcpProductCard':
         return new GcpProductCard(elm);
-      case 'GcpProductZone':
-        return new GcpProductZone(elm);
+      case 'GcpProductGrouping':
+        return new GcpProductGrouping(elm);
       default:
         throw new Error(`unknown diagram type: ${elm.type}`);
     }
