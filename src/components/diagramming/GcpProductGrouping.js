@@ -3,17 +3,32 @@ import groupings from '@/components/diagramming/groupings';
 import AbstractDrawing from '@/components/diagramming/AbstractDrawing';
 
 export default class GcpProductGrouping extends AbstractDrawing {
+  static spec = Object.freeze({
+    radius: 2,
+    paddingTop: 8,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingBottom: 8,
+    heading: Object.freeze({
+      font: '500 16px Roboto',
+      lineHeight: 24,
+      color: 'rgba(0, 0, 0, 0.38)',
+    }),
+    subhead: Object.freeze({
+      font: '500 12px Roboto',
+      lineHeight: 16,
+      color: 'rgba(0, 0, 0, 0.38)',
+    }),
+  });
+
   constructor(params) {
     super();
 
     // parse params
     this.id = params.id;
     this.grouping = params.grouping;
-    this.title = params.title;
-    this.byline = params.byline || null;
-    this.padding = params.padding || { x: 35, y: 15 };
-    this.titleFontSize = params.titleFontSize || 37;
-    this.bylineFontSize = params.bylineFontSize || 33;
+    this.heading = params.heading || '';
+    this.subhead = params.subhead || '';
 
     // instantiate default member values
     this.children = [];
@@ -21,8 +36,8 @@ export default class GcpProductGrouping extends AbstractDrawing {
     this.groupingInfo = groupings[this.grouping.toUpperCase()];
 
     // instantiate drawing elms
-    this.titleDrawing = new createjs.Text();
-    this.bylineDrawing = new createjs.Text();
+    this.headingDrawing = new createjs.Text();
+    this.subheadDrawing = new createjs.Text();
     this.groupingDrawing = new createjs.Shape();
 
     // holds only the child elements
@@ -44,12 +59,20 @@ export default class GcpProductGrouping extends AbstractDrawing {
       id: this.id,
       type: 'GcpProductGrouping',
       grouping: this.grouping,
-      title: this.title,
+      heading: this.heading,
+      subhead: this.subhead,
       x: this.x,
       y: this.y,
       padding: this.padding,
       elms: this.children.map(child => child.toJSON()),
     };
+  }
+
+  static linesOfText(text) {
+    if (!text) {
+      return 0;
+    }
+    return text.split('\n').length;
   }
 
   render() {
@@ -58,78 +81,67 @@ export default class GcpProductGrouping extends AbstractDrawing {
     this.childContainer.removeAllChildren();
     this.groupingContainer.removeAllChildren();
 
-    // render children
+    // render child elements contained in grouping
     this.childrenDrawings.forEach((drawing) => {
       this.childContainer.addChild(drawing);
     });
 
-    // render grouping card
-    this.titleDrawing.text = this.title || 'hi world';
-    this.titleDrawing.color = '#888';
-    this.titleDrawing.font = `${this.titleFontSize}px Roboto`;
-    this.titleDrawing.x = this.padding.x;
-    this.titleDrawing.y = this.padding.y;
+    // render heading
+    this.headingDrawing.text = this.heading;
+    this.headingDrawing.color = GcpProductGrouping.spec.heading.color;
+    this.headingDrawing.font = GcpProductGrouping.spec.heading.font;
+    this.headingDrawing.lineHeight = GcpProductGrouping.spec.heading.lineHeight;
+    this.headingDrawing.x = GcpProductGrouping.spec.paddingLeft;
+    this.headingDrawing.y = GcpProductGrouping.spec.paddingTop;
 
-    this.bylineDrawing.text = this.byline;
-    this.bylineDrawing.color = '#999';
-    this.bylineDrawing.font = `${this.bylineFontSize}px Roboto`;
-    this.bylineDrawing.x = this.padding.x;
-    this.bylineDrawing.y = this.padding.y + 37 + 15;
+    // render subhead
+    this.subheadDrawing.text = this.subhead;
+    this.subheadDrawing.color = GcpProductGrouping.spec.subhead.color;
+    this.subheadDrawing.font = GcpProductGrouping.spec.subhead.font;
+    this.subheadDrawing.lineHeight = GcpProductGrouping.spec.subhead.lineHeight;
+    this.subheadDrawing.x = GcpProductGrouping.spec.paddingLeft;
+    this.subheadDrawing.y = (
+      GcpProductGrouping.linesOfText(this.heading) * this.headingDrawing.lineHeight)
+      + this.headingDrawing.y;
 
-
-    const titleBounds = this.titleDrawing.getBounds();
-    const bylineBounds = this.bylineDrawing.getBounds();
-
-    // position child elements before rendering background...
-    this.childContainer.x = this.bylineDrawing.x;
-    this.childContainer.y = this.padding.y * 3;
-    if (titleBounds) {
-      this.childContainer.y += titleBounds.height;
+    // position grouped elements before rendering our grouping card
+    this.childContainer.x = GcpProductGrouping.spec.paddingLeft;
+    this.childContainer.y = (
+      GcpProductGrouping.linesOfText(this.subhead) * this.subheadDrawing.lineHeight)
+      + this.subheadDrawing.y;
+    if (this.subheadDrawing.text.length) {
+      this.childContainer.y += GcpProductGrouping.spec.paddingTop;
     }
-    if (bylineBounds) {
-      this.childContainer.y += bylineBounds.height;
-    }
 
+    // we have an extra paddingTop if no subhead, so let's remove it
+    // if (!this.subhead) {
+    //   this.childContainer.y -=
+    // }
     // calculate grouping background width
     const childBounds = this.childContainer.getBounds();
-    let groupingWidth = childBounds.width + childBounds.x + (this.padding.x * 2);
-    if (bylineBounds && bylineBounds.width > groupingWidth) {
-      groupingWidth = bylineBounds.width;
-    }
-    if (titleBounds && titleBounds.width > groupingWidth) {
-      groupingWidth = titleBounds.width;
-    }
+
+    const cardWidth = childBounds.width
+      + childBounds.x
+      + GcpProductGrouping.spec.paddingLeft
+      + GcpProductGrouping.spec.paddingRight;
 
     // calculate grouping card background height
-    let groupingHeight = childBounds.height + childBounds.y + (this.padding.y * 5);
-    if (titleBounds) {
-      groupingHeight += titleBounds.height;
-    }
-    if (bylineBounds) {
-      groupingHeight += bylineBounds.height;
-    }
+    const cardHeight = childBounds.height
+      + childBounds.y
+      + this.childContainer.y
+      + GcpProductGrouping.spec.paddingBottom;
 
     this.groupingDrawing.graphics
       .clear()
       .beginFill(this.groupingInfo.background)
-      .drawRect(0, 0,
-          groupingWidth, groupingHeight);
-    this.groupingDrawing.setBounds(0, 0, groupingWidth, groupingHeight);
-
-    // move childDrawings down by the titleBoounds & bylineBounds
-    if (this.childContainer.x < this.padding.x) {
-      this.childContainer.x = this.padding.x;
-    }
-
-    const minChildY = this.padding.y + titleBounds.height;
-    if (this.childContainer.y < minChildY) {
-      this.childContainer.y = minChildY;
-    }
+      .drawRoundRect(0, 0,
+          cardWidth, cardHeight, 2);
+    this.groupingDrawing.setBounds(0, 0, cardWidth, cardHeight);
 
     this.groupingContainer.addChild(
       this.groupingDrawing,
-      this.titleDrawing,
-      this.bylineDrawing);
+      this.headingDrawing,
+      this.subheadDrawing);
 
     // add drawings to container in order of z-index
     this.container.addChild(
@@ -137,7 +149,7 @@ export default class GcpProductGrouping extends AbstractDrawing {
       this.childContainer);
 
     // container bounds same as grouping card's
-    this.container.setBounds(0, 0, groupingWidth, groupingHeight);
+    this.container.setBounds(0, 0, cardWidth, cardHeight);
 
     return this.container;
   }
