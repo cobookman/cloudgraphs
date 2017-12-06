@@ -65,6 +65,7 @@ export default class GcpProductCard extends AbstractDrawing {
 
   render() {
     this.container.removeAllChildren();
+
     const productInfo = GcpProductCard.products[this.product.toUpperCase()];
     const cardHeight = GcpProductCard.spec.heading.lineHeight
       + GcpProductCard.spec.subhead.lineHeight
@@ -136,6 +137,13 @@ export default class GcpProductCard extends AbstractDrawing {
     // explicitly set container width & height
     this.container.setBounds(0, 0, cardWidth, cardHeight);
 
+
+    // cache all the things
+    this.headingDrawing.cache(0, 0,
+      headingBounds.width, headingBounds.height * 1.2);
+    this.subheadDrawing.cache(0, 0,
+      subheadBounds.width, subheadBounds.height * 1.2);
+    this.cardDrawing.cache(0, 0, cardWidth, cardHeight);
     return this.container;
   }
 }

@@ -151,6 +151,14 @@ export default class GcpProductGrouping extends AbstractDrawing {
     // container bounds same as grouping card's
     this.container.setBounds(0, 0, cardWidth, cardHeight);
 
+    // cache all we can for performance reasons
+    this.headingDrawing.cache(0, 0,
+      cardWidth, this.headingDrawing.lineHeight);
+    this.subheadDrawing.cache(0, 0,
+      cardWidth, this.subheadDrawing.lineHeight);
+    this.groupingDrawing.cache(0, 0,
+      cardWidth, cardHeight);
+
     return this.container;
   }
 

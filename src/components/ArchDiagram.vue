@@ -55,7 +55,7 @@ export default {
     this.stage.canvas.width = this.width;
 
     createjs.Touch.enable(this.stage, true, false);
-    createjs.Ticker.framerate = 60;
+    createjs.Ticker.framerate = 30;
     createjs.Ticker.on('tick', this.stage);
 
     this.draw();
